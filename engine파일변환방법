@@ -1,0 +1,8 @@
+.onnx -> .enging파일로 변환하는법
+
+/usr/src/tensorrt/bin/trtexec \
+    --onnx=best.onnx \
+    --saveEngine=best.engine \
+    --fp16 \
+    --memPoolSize=workspace:1024M
+

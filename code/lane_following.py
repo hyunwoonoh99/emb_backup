@@ -51,10 +51,10 @@ from ld0 import process_frame, CSI_PIPELINE
 # ─────────────────────────────────────────────
 # 제어 파라미터  (주행 중 튜닝 포인트)
 # ─────────────────────────────────────────────
-BASE_SPEED      = 0.30    # 기본 전진 속도 (권장 0.15 ~ 0.30)
+BASE_SPEED      = 0.15   # 기본 전진 속도 (권장 0.15 ~ 0.30)
 KP              = 0.55    # 비례 게인: 값이 클수록 더 민감하게 꺾음
-MAX_STEER       = 0.80    # 최대 조향값 (±MAX_STEER)
-MAX_SPEED       = 1.5    # 바퀴 속도 상한
+MAX_STEER       = 1.0    # 최대 조향값 (±MAX_STEER)
+MAX_SPEED       = 0.5   # 바퀴 속도 상한
 LOST_TIMEOUT = 1.5     # 점선 미검출 후 정지까지 유예 시간 (초)
 
 # 수동 모드 조작 파라미터
@@ -94,11 +94,11 @@ def compute_wheel_speeds(steering: float, speed: float):
     # steer > 0: 우회전 → L(내측) 고정, R(외측) 증가
     # steer < 0: 좌회전 → R(내측) 고정, L(외측) 증가
     if steer >= 0:
-        L = base
-        R = base * (1.0 + 2.0 * steer)
-    else:
-        L = base * (1.0 - 2.0 * steer)
+        L = base * (1.0 - 0.8 * steer)
         R = base
+    else:
+        L = base
+        R = base * (1.0 + 0.8 * steer)
 
     L = _clip(L, MAX_SPEED)
     R = _clip(R, MAX_SPEED)
@@ -148,6 +148,7 @@ def main(source=None):
     auto_mode       = False
     manual_speed    = 0.0
     manual_steering = 0.0
+    auto_steering   = 0.0
     running         = True   # False 되면 메인루프 종료
 
     def stop_motors():
@@ -165,7 +166,7 @@ def main(source=None):
     pressed = set()
 
     def on_press(key):
-        nonlocal auto_mode, manual_speed, manual_steering, running
+        nonlocal auto_mode, manual_speed, manual_steering, auto_steering, running
         try:
             pressed.add(key.char)
             if key.char == 'q':
@@ -174,6 +175,7 @@ def main(source=None):
                 auto_mode = not auto_mode
                 manual_speed    = 0.0
                 manual_steering = 0.0
+                auto_steering   = 0.0
                 stop_motors()
                 print(f"[LF] 모드 전환 → {'AUTO' if auto_mode else 'MANUAL'}")
             elif key.char == ' ':
@@ -234,21 +236,26 @@ def main(source=None):
             else:
                 if offset_px is not None:
                     last_detected = now
-                    offset_norm = offset_px / (img_w / 2.0)
-                    steering    = _clip(KP * offset_norm, MAX_STEER)
-                    cmd_L, cmd_R = send(steering, BASE_SPEED)
+                    if offset_px > 0:
+                        auto_steering = _clip(auto_steering + MANUAL_STEER_STEP, MAX_STEER)
+                    elif offset_px < 0:
+                        auto_steering = _clip(auto_steering - MANUAL_STEER_STEP, MAX_STEER)
+                    else:
+                        auto_steering *= MANUAL_STEER_DECAY
+                    cmd_L, cmd_R = send(auto_steering, BASE_SPEED)
                     status = (f"[AUTO]  offset:{offset_px:+4d}px  "
-                              f"steer:{steering:+.2f}  "
+                              f"steer:{auto_steering:+.2f}  "
                               f"L:{cmd_L:+.2f} R:{cmd_R:+.2f}")
                     color = (0, 220, 0)
                 else:
                     elapsed = now - last_detected
+                    auto_steering *= MANUAL_STEER_DECAY
                     if elapsed > LOST_TIMEOUT:
                         stop_motors()
                         status = f"[AUTO] LOST {elapsed:.1f}s — STOPPED"
                         color  = (0, 0, 255)
                     else:
-                        cmd_L, cmd_R = send(0.0, BASE_SPEED * 0.7)
+                        cmd_L, cmd_R = send(auto_steering, BASE_SPEED * 0.7)
                         status = f"[AUTO] LOST {elapsed:.1f}s — coasting"
                         color  = (0, 200, 200)
 
