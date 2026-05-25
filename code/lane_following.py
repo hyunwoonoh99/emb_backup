@@ -51,10 +51,10 @@ from ld0 import process_frame, CSI_PIPELINE
 # ─────────────────────────────────────────────
 # 제어 파라미터  (주행 중 튜닝 포인트)
 # ─────────────────────────────────────────────
-BASE_SPEED   = 0.15    # 기본 전진 속도 (권장 0.15 ~ 0.30)
-KP           = 0.55    # 비례 게인: 값이 클수록 더 민감하게 꺾음
-MAX_STEER    = 0.55    # 최대 조향값 (±MAX_STEER)
-MAX_SPEED    = 0.50    # 바퀴 속도 상한
+BASE_SPEED      = 0.30    # 기본 전진 속도 (권장 0.15 ~ 0.30)
+KP              = 0.55    # 비례 게인: 값이 클수록 더 민감하게 꺾음
+MAX_STEER       = 0.80    # 최대 조향값 (±MAX_STEER)
+MAX_SPEED       = 1.5    # 바퀴 속도 상한
 LOST_TIMEOUT = 1.5     # 점선 미검출 후 정지까지 유예 시간 (초)
 
 # 수동 모드 조작 파라미터
@@ -88,9 +88,17 @@ def compute_wheel_speeds(steering: float, speed: float):
     steer = _clip(steering, MAX_STEER)
     spd   = _clip(speed,    MAX_SPEED)
 
-    base  = abs(spd)
-    L = base * (1.0 - steer)
-    R = base * (1.0 + steer)
+    base = abs(spd)
+
+    # 내측 바퀴는 base 고정, 외측 바퀴만 증가
+    # steer > 0: 우회전 → L(내측) 고정, R(외측) 증가
+    # steer < 0: 좌회전 → R(내측) 고정, L(외측) 증가
+    if steer >= 0:
+        L = base
+        R = base * (1.0 + 2.0 * steer)
+    else:
+        L = base * (1.0 - 2.0 * steer)
+        R = base
 
     L = _clip(L, MAX_SPEED)
     R = _clip(R, MAX_SPEED)
@@ -137,7 +145,7 @@ def main(source=None):
     last_detected = time.time()
 
     # ── 상태 변수 (스레드 공유) ──────────────────
-    auto_mode       = True
+    auto_mode       = False
     manual_speed    = 0.0
     manual_steering = 0.0
     running         = True   # False 되면 메인루프 종료

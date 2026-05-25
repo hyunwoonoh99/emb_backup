@@ -4,10 +4,10 @@ from pynput import keyboard
 import threading
 
 # === Constants ===
-MAX_STEER = 0.4
-MAX_SPEED = 0.25
-STEP_STEER = 0.1
-STEP_SPEED = 0.025
+MAX_STEER = 0.8
+MAX_SPEED = 0.5
+STEP_STEER = 0.2
+STEP_SPEED = 0.05
 
 base = BaseController('/dev/ttyUSB0', 115200)
 
