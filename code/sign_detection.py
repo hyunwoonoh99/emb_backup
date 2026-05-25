@@ -31,10 +31,10 @@ LOOP_HZ     = 20
 CLASS_NAMES = ['green', 'left', 'red', 'right', 'slow', 'stop']
 CLASS_MAP   = {
     'green': 'green',
-    'left':  'left_turn',
+    'left':  'left',
     'red':   'red',
-    'right': 'right_turn',
-    'slow':  'pedestrian',
+    'right': 'right',
+    'slow':  'slow',
     'stop':  'stop',
 }
 

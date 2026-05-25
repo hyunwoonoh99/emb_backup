@@ -34,7 +34,7 @@ DASH_MAX_ASPECT = 7.0
 
 # 점선 클러스터 판정 기준
 DASH_MIN_PIECES = 2       # 이 이상 모여야 "점선 패턴"으로 인정
-DASH_WINDOW     = 0.12    # cx 클러스터링 윈도우 (이미지 너비 비율)
+DASH_WINDOW     = 0.18    # cx 클러스터링 윈도우 (이미지 너비 비율)
 
 # 곡선 피팅 차수 (2차면 충분)
 POLY_ORDER = 2
@@ -162,7 +162,7 @@ def fit_dash_polynomial(centroids, img_h):
         poly_coeffs: np.polyfit 계수 (x = f(y))
         fit_points: 시각화용 (x, y) 포인트 리스트
     """
-    if len(centroids) < 3:
+    if len(centroids) < 2:
         return None, []
 
     pts = np.array(centroids, dtype=np.float32)
