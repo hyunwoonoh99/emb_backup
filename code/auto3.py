@@ -32,8 +32,14 @@ lane_following.py 와의 차이
 
 실행 방법
 ---------
+<<<<<<< HEAD
   python3 auto3.py          # CSI 카메라 (GStreamer)
   python3 auto3.py 0        # USB 카메라 /dev/video0
+=======
+  python3 pure_pursuit_lane.py          # CSI 카메라 (GStreamer)
+  python3 pure_pursuit_lane.py 0        # USB 카메라 /dev/video0
+  python3 pure_pursuit_lane.py video.mp4  # 영상 파일 (제어 없이 검출만)
+>>>>>>> 0c45af6 (last backup)
 """
 
 import cv2
@@ -221,16 +227,26 @@ def main(source=None):
     # ── 카메라 초기화 ─────────────────────────────────────
     if source is None:
         cap = cv2.VideoCapture(CSI_PIPELINE, cv2.CAP_GSTREAMER)
+<<<<<<< HEAD
     else:
+=======
+    elif isinstance(source, int):
+>>>>>>> 0c45af6 (last backup)
         cap = cv2.VideoCapture(source, cv2.CAP_V4L2)
         cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
         cap.set(cv2.CAP_PROP_FRAME_WIDTH,  640)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
         cap.set(cv2.CAP_PROP_FPS, 30)
+<<<<<<< HEAD
+=======
+    else:
+        cap = cv2.VideoCapture(source)
+>>>>>>> 0c45af6 (last backup)
 
     if not cap.isOpened():
         raise RuntimeError(f"카메라를 열 수 없습니다: {source}")
 
+<<<<<<< HEAD
     sim_mode = False  # 로버 연결 실패 시 True로 전환
     base = None
     try:
@@ -240,6 +256,18 @@ def main(source=None):
     except Exception as e:
         print(f"[PP] 경고: 로버 연결 실패 ({e}) — 시각화만 실행합니다.")
         sim_mode = True
+=======
+    sim_mode = isinstance(source, str)
+    base = None
+    if not sim_mode:
+        try:
+            base = BaseController(SERIAL_PORT, BAUD_RATE)
+            print(f"[PP] 로버 연결: {SERIAL_PORT}  1초 후 주행 시작...")
+            time.sleep(1.0)
+        except Exception as e:
+            print(f"[PP] 경고: 로버 연결 실패 ({e}) — 시각화만 실행합니다.")
+            sim_mode = True
+>>>>>>> 0c45af6 (last backup)
 
     # ── TRT 엔진 초기화 ───────────────────────────────────────
     try:
@@ -320,7 +348,11 @@ def main(source=None):
     listener = kb.Listener(on_press=on_press, on_release=on_release)
     listener.start()
     cv2.namedWindow("Pure Pursuit Lane", cv2.WINDOW_NORMAL)
+<<<<<<< HEAD
     cv2.namedWindow("Sign Cam", cv2.WINDOW_NORMAL)
+=======
+   
+>>>>>>> 0c45af6 (last backup)
 
     try:
         while running:
@@ -358,6 +390,11 @@ def main(source=None):
                     ret_s, sf = cap_sign.read()
                     if ret_s:
                         sign_src = sf
+<<<<<<< HEAD
+=======
+                elif sim_mode:
+                    sign_src = frame  # 영상 파일 재생 시에만 cam0 사용
+>>>>>>> 0c45af6 (last backup)
 
                 if sign_src is not None:
                     try:
@@ -417,7 +454,11 @@ def main(source=None):
                     if detected_label == 'green':
                         sign_state = 'crossing'
                         sign_state_start = now
+<<<<<<< HEAD
                     elif now - sign_state_start >= 4.0:
+=======
+                    elif now - sign_state_start >= 8.0:
+>>>>>>> 0c45af6 (last backup)
                         sign_state = 'run'
                 elif sign_state == 'crossing':
                     if now - sign_state_start >= CROSS_DURATION:
@@ -511,9 +552,12 @@ def main(source=None):
 
             cv2.imshow("Pure Pursuit Lane", vis)
 
+<<<<<<< HEAD
             # cam1 Sign Cam 창 업데이트
             if last_sign_vis is not None:
                 cv2.imshow("Sign Cam", last_sign_vis)
+=======
+>>>>>>> 0c45af6 (last backup)
             cv2.waitKey(1)
 
     except KeyboardInterrupt:
@@ -529,10 +573,21 @@ def main(source=None):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     src = int(sys.argv[1]) if len(sys.argv) > 1 else None
+=======
+    if len(sys.argv) > 1:
+        src = sys.argv[1]
+        src = int(src) if src.isdigit() else src
+    else:
+        src = None
+>>>>>>> 0c45af6 (last backup)
     main(src)
 
 
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0c45af6 (last backup)
