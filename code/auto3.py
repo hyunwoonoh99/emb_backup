@@ -14,7 +14,7 @@ Pure Pursuit 원리
   3. 순수 Pure Pursuit 조향각:
        delta = arctan(2 * L * sin(alpha) / Ld)
      결과를 [-1, +1] 로 정규화 (±45도 = ±1)
-  4. 조향 크기에 비례해 속도를 감속 (코너 안전성)
+  4. 조향 크기에 비례해 속도를 감속 (코너 안전성) 
 
 lane_following.py 와의 차이
 ---------------------------
